@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<launch>
+    <node name="imau_control_node" pkg="elev_control"  type="imau_control_node" output="screen" required="true">
+    </node>
+
+  <!-- load the controllers -->
+  <include file="$(find imau_control)/launch/elevator_control.launch"/>
+
+     <!-- Load the default controllers -->
+  <!-- <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+	  output="screen" args="joint_state_controller imau_elevator_controller" /> -->
+
+
+</launch>
