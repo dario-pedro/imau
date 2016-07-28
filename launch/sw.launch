@@ -1,10 +1,7 @@
 <?xml version="1.0"?>
 
 <launch>
-    <rosparam file="$(find motor_commander)/config/hardware_controllers.yaml" command="load"/>
-
-     <!-- Load the default controllers -->
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-	  output="screen" args="joint_state_controller tr5_position_trajectory_controller" />
+  <!-- load the controllers -->
+  <include file="$(find imau_control)/launch/elevator_control.launch"/>
 
 </launch>

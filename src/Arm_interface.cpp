@@ -15,18 +15,24 @@ Arm_interface::Arm_interface(std::string controller_name):n("~"){
   create_controller_manager();
 }
 
-
 void Arm_interface::create_controller_manager(){
   // Create the controller manager
   ROS_DEBUG_STREAM_NAMED("hardware_interface","Loading controller_manager");
   controller_manager.reset(new controller_manager::ControllerManager(this, nh));
 }
 
-
-
 void Arm_interface::standard_arm(std::string controller_name){
+
+  if(nh.getParam("contr_name",controller_name)) {
+
+      ROS_INFO("Constructing controller %s", controller_name.c_str());
+  }
+    else{
+      ROS_ERROR("Couldnt Load controller correctly");
+  }
+
     //PUBLISHERS
-  joints_pub = nh.advertise<sensor_msgs::JointState>(/*/imau*/"/actuator/motor_nanotec/joint_command", 1000);
+  joints_pub = nh.advertise<sensor_msgs::JointState>(/*/imau*/"/actuator/motor_nanotec"+controller_name+"/joint_command/", 1000);
 
   //SUBSCRIBERS
   arm_interface_sub = n.subscribe("/actuator/motor_nanotec/joint_states", 1000,&Arm_interface::handleAMotorResponse, this);
@@ -38,23 +44,18 @@ void Arm_interface::standard_arm(std::string controller_name){
   handleMotorPermition = false;
 
   //create timer
-  ros::Duration update_freq = ros::Duration(1.0/10);
-  non_realtime_loop_ = n.createTimer(update_freq, &Arm_interface::update, this);
+ // ros::Duration update_freq = ros::Duration(1.0/10);
+  //non_realtime_loop_ = n.createTimer(update_freq, &Arm_interface::update, this);
 
   last_time = ros::Time::now(); // marks the start
 
-
-
-  ROS_INFO("Name %s",controller_name.c_str());
   //DINAMIC PARAMETERS LOADING
-  std::string teste = controller_name+"/joints";
   if (!nh.hasParam(controller_name+"/joints")/* || !nh.hasParam(controller_name+"/motorIDs")*/){
      ROS_ERROR("Joints DOES NOT EXIST!");
      return;
   }
-
   if (nh.getParam(controller_name+"/joints",jointsState.name) /*&& nh.getParam(controller_name+"/motorIDs",motorIDs)*/){
-    ROS_INFO("Read all joints names and IDs with sucess!");
+    ROS_INFO("Read all joints names and IDs with success!");
 
     motorCounter = (int) jointsState.name.size();
     jointsState.position.resize(motorCounter);
@@ -82,8 +83,7 @@ void Arm_interface::standard_arm(std::string controller_name){
   //CHECK IF ALL INFORMATION IS CORRECT
   print_motors_info();
 
-  // Initialize
-
+  // Initialize intesrfaces
   init(js_interface_, pj_interface_);
 
   // Register interfaces
@@ -91,7 +91,7 @@ void Arm_interface::standard_arm(std::string controller_name){
   registerInterface(&pj_interface_);
 }
 
-boost::shared_ptr<controller_manager::ControllerManager> Arm_interface::share_controller(){
+boost::shared_ptr<controller_manager::ControllerManager> Arm_interface::share_controller_manager(){
   return controller_manager;
 }
 
@@ -108,28 +108,26 @@ void Arm_interface::print_motors_info(){
 
 void Arm_interface::write(){
 
+    ROS_INFO("---START PUBLISH ALL---");
+
 	//jointsStateT.position.clear();
 	//jointsStateT.velocity.clear();
-	for(int i =1; i<=motorCounter;i++){
-        if(std::abs(joint_position_command_[0]-jointsStateT.position[0])*20 > TOLERANCE) {
-            jointsStateT.position[0] = joint_position_command_[0] * 10;
-            jointsStateT.velocity.push_back(i * 1000);
-            jointsStateT.position.push_back(i * 1000 + TO_REMOVEE * 20);
+	for(int i = 0; i<motorCounter;i++){
+       // if(std::abs(joint_position_command_[i]-jointsStateT.position[i])*20 > TOLERANCE) {
+            jointsStateT.position[i] = /*joint_position_command_[i] * */joint_position_command_[i];
+            jointsStateT.velocity[i] = (i * 1000);
+            jointsStateT.effort[i] = (i * 1000 + TO_REMOVEE * 20);
             joints_pub.publish(jointsStateT);
-        }
+      //  }
 	}
+    ROS_INFO("---END PUBLISH ALL---");
+
 
 }
 
 void Arm_interface::read(){
 	ROS_INFO("TODO");
 }
-
-
-
-
-
-
 
 
 void Arm_interface::update(const ros::TimerEvent& e)
@@ -141,8 +139,9 @@ void Arm_interface::update(const ros::TimerEvent& e)
   //right_arm_hw_->read(state_msg_);
  // left_arm_hw_->read(state_msg_);
 
-
-
+for(int i=0;i<5000;i++){
+  ROS_INFO("Update on timer!\n\n");
+}
 
   // Control
  controller_manager->update(ros::Time::now(), elapsed_time_);
@@ -165,7 +164,7 @@ bool Arm_interface::init(
 
   for (std::size_t i = 0; i < motorCounter; i++)
   {
-    ROS_INFO("Motor %s is at %f with speed %f doing effort %f ",jointsState.name[i].c_str(),jointsState.position[i],jointsState.velocity[i],jointsState.effort[i]);
+    ROS_INFO("Init %s  at %.2f with speed %.2f doing effort %.2f ",jointsState.name[i].c_str(),jointsState.position[i],jointsState.velocity[i],jointsState.effort[i]);
 
     // Create joint state interface for all joints
     js_interface.registerHandle(hardware_interface::JointStateHandle(
@@ -176,22 +175,25 @@ bool Arm_interface::init(
             js_interface.getHandle(jointsState.name[i]),&joint_position_command_[i]));
 
   }
-
- 
-  ROS_INFO("Loaded imau_hardware_interface.");
   return true;
 }
 
 
 void Arm_interface::run(){
- // ros::Rate go(100);
+  ros::Rate go(10);
   ros::AsyncSpinner spinner(1);
   spinner.start();
   double previous_for_debug=joint_position_command_[0];
   int i = 0;
   while (ros::ok()){
+
+     // Control
+     controller_manager->update(ros::Time::now(), ros::Duration( ros::Time::now()- last_time));
+     last_time = ros::Time::now();
+     //WRITE
+     write();
     
-  //ROS_INFO("Update!");
+  ROS_INFO("Update on run!");
       if(previous_for_debug!=joint_position_command_[0]) {
           ROS_INFO("Checking joint_commands");
           std::vector<double>::iterator it2 = joint_position_command_.begin();// cant declare 2 different variables types inside the for loop
@@ -206,9 +208,9 @@ void Arm_interface::run(){
           previous_for_debug = joint_position_command_[0];
       }
       // Control
-      ros::spinOnce();
+      //ros::spinOnce();
       i=0;
-  	//  go.sleep();
+  	  go.sleep();
   }
 }
 

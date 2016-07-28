@@ -31,10 +31,9 @@ namespace ARM
             Arm_interface (std::string controller_name,boost::shared_ptr<controller_manager::ControllerManager> _controller_manager);
             Arm_interface (std::string controller_name);
             virtual ~Arm_interface (){};
-            boost::shared_ptr<controller_manager::ControllerManager> share_controller();
+            boost::shared_ptr<controller_manager::ControllerManager> share_controller_manager();
             void standard_arm(std::string controller_name);
             void create_controller_manager();
-
             void run();
 
         private:
