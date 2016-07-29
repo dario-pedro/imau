@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<launch>
+
+<!--	<rosparam file="$(find imau_control)/config/left_gripper_control.yaml" command="load"/>
+		<node name="l_gripper_controller_spawner" pkg="controller_manager" type="spawner" 		args="imau_left_gripper_controller" /> -->
+
+    <node name="imau_lg_control_node" pkg="trajectory_ros_control"  type="imau_control_node" 		output="screen" required="true">
+    <param name="contr_name"  value="imau_left_gripper_controller" />
+    </node>
+
+
+
+</launch>

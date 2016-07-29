@@ -1,10 +1,8 @@
-#ifndef _ARM_ARM_INTERFACE_HPP__
-#define _ARM_ARM_INTERFACE_HPP__
+#ifndef _ARM_CONTROLLER_HARDWARE_HPP__
+#define _ARM_CONTROLLER_HARDWARE_HPP__
 
 
 #define TOLERANCE 2
-
-#include "imau_control/Controller_hardware.hpp"
 
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
@@ -36,23 +34,27 @@ using namespace transmission_interface;
 
 namespace ARM
 {
-    class Arm_interface : public hardware_interface::RobotHW
+    class Controller_hardware 
     {
         public:
-            Arm_interface (std::string controller_name,boost::shared_ptr<controller_manager::ControllerManager> _controller_manager);
-            Arm_interface (std::string controller_name);
-            Arm_interface ();
-            virtual ~Arm_interface (){};
-            boost::shared_ptr<controller_manager::ControllerManager> share_controller_manager();
-            //void standard_controller(std::string controller_name);
-            void create_controller_manager();
-            void run();
+            Controller_hardware (std::string controller_name);
+            virtual ~Controller_hardware (){};
+//            void run();
+
+        std::string controller_name_;
+
+        void write();
+        void read();
+
+        //control functions
+        bool init(hardware_interface::JointStateInterface&    js_interface,
+                  hardware_interface::PositionJointInterface& pj_interface);
 
         private:
 
             // TRANSMISSIONS
-            RobotTransmissions robot_transmissions_;
-           boost::scoped_ptr<TransmissionInterfaceLoader> transmission_loader_;
+           // RobotTransmissions robot_transmissions_;
+            //boost::scoped_ptr<TransmissionInterfaceLoader> transmission_loader_;
 
             // Transmission interfaces
             ActuatorToJointStateInterface    act_to_jnt_state; // For propagating current actuator state to joint space
@@ -61,8 +63,6 @@ namespace ARM
             // Transmissions
             //SimpleTransmission       sim_trans;
             //DifferentialTransmission dif_trans;
-
-            std::vector<Controller_hardware> controllers_vector;
 
             // Actuator and joint space variables: wrappers around raw data
             std::vector<ActuatorData> a_state_data; // Size 2: One per transmission
@@ -100,11 +100,11 @@ namespace ARM
             std::vector<double>                           joint_position_command_;
 
             // Interfaces
-            hardware_interface::JointStateInterface    js_interface_;
+         //   hardware_interface::JointStateInterface    js_interface_;
             //hardware_interface::JointModeInterface     jm_interface_;
            // hardware_interface::EffortJointInterface   ej_interface_;
             //hardware_interface::VelocityJointInterface vj_interface_;
-            hardware_interface::PositionJointInterface pj_interface_;
+           // hardware_interface::PositionJointInterface pj_interface_;
 
             ros::Time                                       last_time;
             ros::Timer non_realtime_loop_;
@@ -123,22 +123,18 @@ namespace ARM
 	        
             ros::Subscriber                               arm_interface_sub;
 
-            //FUNCTIONS
-            void constructor_global_fuction();
-            void print_motors_info();
-            void write();
-            void read();
+            void standard_controller(std::string controller_name);
 
-            //control functions
-            bool init(hardware_interface::JointStateInterface&    js_interface,
-                      hardware_interface::PositionJointInterface& pj_interface);
+            void print_motors_info();
+
+
 
 
 
 
 
     	    //CALLBACKS
-//            void handleAMotorResponse(const sensor_msgs::JointState::ConstPtr& arm_request);
+            void handleAMotorResponse(const sensor_msgs::JointState::ConstPtr& arm_request);
     };
 }
 

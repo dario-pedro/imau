@@ -3,5 +3,7 @@
 <launch>
   <!-- load the controllers -->
   <include file="$(find imau_control)/launch/elevator_control.launch"/>
+  <rosparam file="$(find imau_control)/config/controllers_list.yaml" command="load"/>
+  
 
 </launch>

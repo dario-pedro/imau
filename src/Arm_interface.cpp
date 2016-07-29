@@ -1,94 +1,95 @@
 #include "imau_control/Arm_interface.hpp"
 
 using namespace ARM;
-int TO_REMOVEE = 0;
 
 
 Arm_interface::Arm_interface(std::string controller_name,boost::shared_ptr<controller_manager::ControllerManager> _controller_manager):n("~"){
+    constructor_global_fuction();
 
-  standard_arm(controller_name);
+//  standard_controller(controller_name);
   controller_manager = _controller_manager;
 }
 
 Arm_interface::Arm_interface(std::string controller_name):n("~"){
-  standard_arm(controller_name);
+    constructor_global_fuction();
+  //standard_controller(controller_name);
+    // Initialize transmission loader
+ /*   try
+    {
+        transmission_loader_.reset(new TransmissionInterfaceLoader(this, &robot_transmissions_));
+    }
+    catch(const std::invalid_argument& ex)
+    {
+        ROS_ERROR_STREAM("Failed to create transmission interface loader. " << ex.what());
+    }
+    catch(const pluginlib::LibraryLoadException& ex)
+    {
+        ROS_ERROR_STREAM("Failed to create transmission interface loader. " << ex.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("Failed to create transmission interface loader. ");
+    }
+
+    std::string robot_description;
+    // ...load URDF from parameter server or file
+
+    // Perform actual transmission loading
+    if (!transmission_loader_->load(robot_description)) {
+        ROS_ERROR("Could not load robot_descripions to transmissions_loader");
+    }*/
   create_controller_manager();
+}
+
+Arm_interface::Arm_interface():n("~"){
+    constructor_global_fuction();
+    std::vector<std::string> controller_name_array;
+    if(nh.getParam("controllers",controller_name_array)) {
+      ROS_INFO("Load all controllers correctly into array");
+    }
+    else{
+      ROS_FATAL("Couldnt Load controller correctly");
+    }
+
+    for(int i=0;i<controller_name_array.size();i++){
+       // ROS_INFO("TEST DINAYMIC VECTOR LOADING %s",controller_name_array[i].c_str());
+        //{
+        //Controller_hardware mch(controller_name_array[i]);
+        controllers_vector.push_back(Controller_hardware(controller_name_array[i]));
+        controllers_vector[i].init(js_interface_, pj_interface_);
+        //}
+        //standard_controller(controller_name_array[i]);
+    }
+
+    create_controller_manager();
 }
 
 void Arm_interface::create_controller_manager(){
   // Create the controller manager
+  // Register interfaces
+  registerInterface(&js_interface_);
+  registerInterface(&pj_interface_);
   ROS_DEBUG_STREAM_NAMED("hardware_interface","Loading controller_manager");
   controller_manager.reset(new controller_manager::ControllerManager(this, nh));
 }
 
-void Arm_interface::standard_arm(std::string controller_name){
 
-  if(nh.getParam("contr_name",controller_name)) {
+void Arm_interface::constructor_global_fuction(){
 
-      ROS_INFO("Constructing controller %s", controller_name.c_str());
-  }
-    else{
-      ROS_ERROR("Couldnt Load controller correctly");
-  }
-
-    //PUBLISHERS
-  joints_pub = nh.advertise<sensor_msgs::JointState>(/*/imau*/"/actuator/motor_nanotec"+controller_name+"/joint_command/", 1000);
-
-  //SUBSCRIBERS
-  arm_interface_sub = n.subscribe("/actuator/motor_nanotec/joint_states", 1000,&Arm_interface::handleAMotorResponse, this);
+    //SUBSCRIBERS
+//    arm_interface_sub = n.subscribe("/actuator/motor_nanotec/joint_states", 1000,&Arm_interface::handleAMotorResponse, this);
 
 
-  //CONTROL VARIABLES
-  waiting_motorMessage = false;
-  handleMotorRequestFLAG = false;
-  handleMotorPermition = false;
+    //CONTROL VARIABLES
+    waiting_motorMessage = false;
+    handleMotorRequestFLAG = false;
+    handleMotorPermition = false;
 
-  //create timer
- // ros::Duration update_freq = ros::Duration(1.0/10);
-  //non_realtime_loop_ = n.createTimer(update_freq, &Arm_interface::update, this);
+    //create timer
+    // ros::Duration update_freq = ros::Duration(1.0/10);
+    //non_realtime_loop_ = n.createTimer(update_freq, &Arm_interface::update, this);
 
-  last_time = ros::Time::now(); // marks the start
-
-  //DINAMIC PARAMETERS LOADING
-  if (!nh.hasParam(controller_name+"/joints")/* || !nh.hasParam(controller_name+"/motorIDs")*/){
-     ROS_ERROR("Joints DOES NOT EXIST!");
-     return;
-  }
-  if (nh.getParam(controller_name+"/joints",jointsState.name) /*&& nh.getParam(controller_name+"/motorIDs",motorIDs)*/){
-    ROS_INFO("Read all joints names and IDs with success!");
-
-    motorCounter = (int) jointsState.name.size();
-    jointsState.position.resize(motorCounter);
-    jointsState.velocity.resize(motorCounter);
-    jointsState.effort.resize(motorCounter);
-    jointsStateT.name=jointsState.name;
-    jointsStateT.position.resize(motorCounter);
-    jointsStateT.velocity.resize(motorCounter);
-    jointsStateT.effort.resize(motorCounter);
-    joint_position_command_.resize(motorCounter);
-
-  for (std::size_t i = 0; i < motorCounter ; ++i){
-      ROS_INFO("%s ", jointsState.name[i].c_str());
-      jointsState.position[i] = 0.0;
-      jointsState.velocity[i] = 0.0;
-      jointsState.effort[i] = 0.0;
-      joint_position_command_[i] = 0.0;
-    }
-    current_motor = 0;
-  }
-  else{
-    ROS_ERROR("Failed to get param joints");
-  }
-
-  //CHECK IF ALL INFORMATION IS CORRECT
-  print_motors_info();
-
-  // Initialize intesrfaces
-  init(js_interface_, pj_interface_);
-
-  // Register interfaces
-  registerInterface(&js_interface_);
-  registerInterface(&pj_interface_);
+    last_time = ros::Time::now(); // marks the start
 }
 
 boost::shared_ptr<controller_manager::ControllerManager> Arm_interface::share_controller_manager(){
@@ -108,20 +109,11 @@ void Arm_interface::print_motors_info(){
 
 void Arm_interface::write(){
 
-    ROS_INFO("---START PUBLISH ALL---");
-
-	//jointsStateT.position.clear();
-	//jointsStateT.velocity.clear();
-	for(int i = 0; i<motorCounter;i++){
-       // if(std::abs(joint_position_command_[i]-jointsStateT.position[i])*20 > TOLERANCE) {
-            jointsStateT.position[i] = /*joint_position_command_[i] * */joint_position_command_[i];
-            jointsStateT.velocity[i] = (i * 1000);
-            jointsStateT.effort[i] = (i * 1000 + TO_REMOVEE * 20);
-            joints_pub.publish(jointsStateT);
-      //  }
-	}
-    ROS_INFO("---END PUBLISH ALL---");
-
+//    controllers_vector[0].write();
+    for(int i=0;i<controllers_vector.size();i++) {
+       // ROS_INFO("Writting %s",controllers_vector[i].controller_name_.c_str());
+        controllers_vector[i].write();
+    }
 
 }
 
@@ -130,41 +122,30 @@ void Arm_interface::read(){
 }
 
 
-void Arm_interface::update(const ros::TimerEvent& e)
-{
-
-  ros::Duration elapsed_time_ = ros::Duration(e.current_real - e.last_real);
-
-  // Input
-  //right_arm_hw_->read(state_msg_);
- // left_arm_hw_->read(state_msg_);
-
-for(int i=0;i<5000;i++){
-  ROS_INFO("Update on timer!\n\n");
-}
-
-  // Control
- controller_manager->update(ros::Time::now(), elapsed_time_);
-
- //WRITE
- write();
-
-
-
-  // Output
-  //right_arm_hw_->write(elapsed_time_);
-  //left_arm_hw_->write(elapsed_time_);
-}
-
 
 bool Arm_interface::init(
   hardware_interface::JointStateInterface&    js_interface,
   hardware_interface::PositionJointInterface& pj_interface)
 {
-
+  std::vector<SimpleTransmission> sim_array;
+  //SimpleTransmission *sim_trans = new SimpleTransmission(-10, 1);
   for (std::size_t i = 0; i < motorCounter; i++)
   {
     ROS_INFO("Init %s  at %.2f with speed %.2f doing effort %.2f ",jointsState.name[i].c_str(),jointsState.position[i],jointsState.velocity[i],jointsState.effort[i]);
+
+
+//          sim_array.push_back(*new SimpleTransmission(-10, 1));
+//
+//          // Create joint transmissions interfaces
+//          act_to_jnt_state.registerHandle(ActuatorToJointStateHandle("sim_trans",
+//                                                                     sim_array[i],
+//                                                                     a_state_data[i],
+//                                                                     j_state_data[i]));
+//
+//          jnt_to_act_pos.registerHandle(JointToActuatorPositionHandle("sim_trans",
+//                                                                      sim_array[i],
+//                                                                      a_cmd_data[i],
+//                                                                      j_cmd_data[i]));
 
     // Create joint state interface for all joints
     js_interface.registerHandle(hardware_interface::JointStateHandle(
@@ -180,23 +161,30 @@ bool Arm_interface::init(
 
 
 void Arm_interface::run(){
+
   ros::Rate go(10);
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  double previous_for_debug=joint_position_command_[0];
-  int i = 0;
+   // controllers_vector[0].run();
+  //  for(int i=0;i<controllers_vector.size();i++) {
+  //      controllers_vector[i].run();
+ //   }
+    std::cout << "duration " << std::endl;
+
   while (ros::ok()){
 
-     // Control
+     // Controller manager loop
+      // read is on callback
+      std::cout << "duration " << ros::Duration( ros::Time::now()- last_time) << std::endl;
      controller_manager->update(ros::Time::now(), ros::Duration( ros::Time::now()- last_time));
      last_time = ros::Time::now();
      //WRITE
      write();
     
-  ROS_INFO("Update on run!");
-      if(previous_for_debug!=joint_position_command_[0]) {
+  // ROS_INFO("Update on run!");
+  /*    if(previous_for_debug!=joint_position_command_[0]) {
           ROS_INFO("Checking joint_commands");
-          std::vector<double>::iterator it2 = joint_position_command_.begin();// cant declare 2 different variables types inside the for loop
+          std::vector<dwriteouble>::iterator it2 = joint_position_command_.begin();// cant declare 2 different variables types inside the for loop
           std::vector<double>::iterator it3 = jointsState.position.begin();// cant declare 2 different variables types inside the for loop
           for (std::vector<std::string>::iterator it = jointsState.name.begin();
                it != jointsState.name.end() && i < motorCounter; i++, ++it, ++it2, ++it3) {
@@ -209,21 +197,22 @@ void Arm_interface::run(){
       }
       // Control
       //ros::spinOnce();
-      i=0;
+      i=0;*/
   	  go.sleep();
   }
 }
 
 
-void Arm_interface::handleAMotorResponse(const sensor_msgs::JointState::ConstPtr& motor_response){
-	//ROS_INFO("Rcv a motor Response");
-  // READ 
-  jointsState.name = motor_response->name ;
-  jointsState.position = motor_response->position;
-  jointsState.velocity = motor_response->velocity;
-  jointsState.effort = motor_response->effort;
-  //jointsState = &request;
-}
+//void Arm_interface::handleAMotorResponse(const sensor_msgs::JointState::ConstPtr& motor_response){
+//	//ROS_INFO("Rcv a motor Response");
+//  // READ
+//  jointsState.name = motor_response->name ;
+//  jointsState.position = motor_response->position;
+//  jointsState.velocity = motor_response->velocity;
+//  jointsState.effort = motor_response->effort;
+//  act_to_jnt_state.propagate();
+//  //jointsState = &request;
+//}
 
 
 

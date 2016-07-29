@@ -47,6 +47,8 @@
   <build_depend>sensor_msgs</build_depend>
   <build_depend>controller_manager</build_depend>
   <build_depend>hardware_interface</build_depend>
+  <build_depend>transmission_interface</build_depend>
+
 
     
 
@@ -56,6 +58,7 @@
   <run_depend>sensor_msgs</run_depend>
   <run_depend>controller_manager</run_depend>
   <run_depend>hardware_interface</run_depend>
+  <run_depend>transmission_interface</run_depend>
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
