@@ -2,32 +2,8 @@
 
 <launch>
 
-<!--	<rosparam file="$(find imau_control)/config/elevator_control.yaml" command="load"/>
-		<node name="elevator_controller_spawner" pkg="controller_manager" type="spawner" args="imau_elevator_controller" />-->
-
-
-    <node name="imau_elev_control_node" pkg="trajectory_ros_control"  type="imau_control_node" 		output="screen" required="true">
+    <node name="imau_elev_control_node" pkg="trajectory_ros_control"  type="imau_control_node" 	output="screen" required="true">
     <param name="contr_name" type="string" value="imau_elevator_controller" />
     </node>
-
-  <!--  <node name="imau_rg_control_node" pkg="trajectory_ros_control"  type="imau_control_node" 		output="screen" required="true">
-    <param name="contr_name" type="string" value="imau_right_gripper_controller" />
-    </node>
-
-    <node name="imau_lg_control_node" pkg="trajectory_ros_control"  type="imau_control_node" 		output="screen" required="true">
-    <param name="contr_name" type="string" value="imau_left_gripper_controller" />
-    </node> -->
-
-
-
-
-
-
-
-
-     <!-- Load the default controllers -->
-  <!-- <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-	  output="screen" args="joint_state_controller imau_elevator_controller" /> -->
-
 
 </launch>
