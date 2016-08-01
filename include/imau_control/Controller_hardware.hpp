@@ -43,11 +43,14 @@ namespace ARM
         std::string controller_name_;
 
         void write();
-        void read();
+        void read(sensor_msgs::JointState &jointState_complete);
+
+        int                                           motorCounter;
 
         //control functions
         bool init(hardware_interface::JointStateInterface&    js_interface,
-                  hardware_interface::PositionJointInterface& pj_interface);
+                  hardware_interface::PositionJointInterface& pj_interface,
+                  sensor_msgs::JointState &jointState_complete);
 
         private:
 
@@ -65,7 +68,11 @@ namespace ARM
             ros::Time                                       last_time;
             ros::Timer non_realtime_loop_;
 
-            int                                           motorCounter;
+
+            // Convert a joint states message to our ids
+            std::vector<std::size_t> joint_id_to_joint_states_id_;
+
+
 
             ros::Time                                     mTimer;
 

@@ -3,7 +3,7 @@
 <launch>
 
     <node name="imau_elev_control_node" pkg="trajectory_ros_control"  type="imau_control_node" 	output="screen" required="true">
-    <param name="contr_name" type="string" value="imau_elevator_controller" />
+
     </node>
 
 </launch>

@@ -79,25 +79,19 @@ namespace ARM
             boost::shared_ptr<controller_manager::ControllerManager> controller_manager;
 
             //sensor_msgs::JointState                       jointsState;
-            sensor_msgs::JointState                       jointsStateT;
-            sensor_msgs::JointState                       jointsStateActuator;
-            std::vector<double>                           joint_position_command_;
+            sensor_msgs::JointState                       jointStates_complete;
+
 
             // Interfaces
             hardware_interface::JointStateInterface    js_interface_;
             hardware_interface::PositionJointInterface pj_interface_;
 
             ros::Time                                       last_time;
-            ros::Timer non_realtime_loop_;
 
 
-            //std::vector<int>                            motorIDs;   
-            //int                                         motorIDs[20]; 
-            int                                           current_motor;  
-            int                                           motorCounter;   
+            int                                           total_motorCounter;
 
-            ros::Time                                     mTimer;  
-            ros::Time                                     timer_for_ellapse;      
+
             ros::Publisher                                joints_pub;	
 	        
             ros::Subscriber                               arm_interface_sub;
@@ -107,6 +101,9 @@ namespace ARM
             void print_motors_info();
             void write();
             void read();
+
+            //Callbacks
+            void handleAMotorResponse(const sensor_msgs::JointState::ConstPtr& motor_response);
 
     };
 }
