@@ -39,7 +39,6 @@ namespace ARM
         public:
             Controller_hardware (std::string controller_name);
             virtual ~Controller_hardware (){};
-//            void run();
 
         std::string controller_name_;
 
