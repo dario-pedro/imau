@@ -18,8 +18,8 @@ Arm_interface::Arm_interface():n("~"){
     std::vector<std::string> controller_name_array;
     if(nh.getParam("controllers",controller_name_array)) {
       ROS_INFO(" Name(s) of  all controller(s) loaded correctly");
-        for(int i=0;i<1;i++) {
-            //for(int i=0;i<controller_name_array.size();i++) {
+//        for(int i=0;i<1;i++) {
+            for(int i=0;i<controller_name_array.size();i++) {
             std::cout << controller_name_array[i] << std::endl;
         }
     }
@@ -27,8 +27,8 @@ Arm_interface::Arm_interface():n("~"){
       ROS_FATAL("Couldn't load controller(s)");
     }
 
-//    for(int i=0;i<controller_name_array.size();i++){
-    for(int i=0;i<1;i++){
+    for(int i=0;i<controller_name_array.size();i++){
+//    for(int i=0;i<1;i++){
         ROS_INFO("Controller: %s",controller_name_array[i].c_str());
         controllers_vector.push_back(Controller_hardware(controller_name_array[i]));
         controllers_vector[i].init(js_interface_, pj_interface_);
@@ -73,8 +73,8 @@ boost::shared_ptr<controller_manager::ControllerManager> Arm_interface::share_co
 
 
 void Arm_interface::write(){
-    for(int i=0;i<1;i++) {
-    //for(int i=0;i<controllers_vector.size();i++) {
+//    for(int i=0;i<1;i++) {
+    for(int i=0;i<controllers_vector.size();i++) {
        // ROS_INFO("Writting %s",controllers_vector[i].controller_name_.c_str());
         controllers_vector[i].write();
     }

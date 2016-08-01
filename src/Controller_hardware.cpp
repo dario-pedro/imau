@@ -11,11 +11,13 @@ Controller_hardware::Controller_hardware(std::string controller_name):n("~"){
     //PUBLISHERS
   joints_pub = nh.advertise<sensor_msgs::JointState>(/*/imau*/"/actuator/motor_nanotec"+controller_name+"/joint_command/", 1000);
 
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
+
 
     last_time = ros::Time::now(); // marks the start
     standard_controller(controller_name);
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
 }
 
@@ -88,10 +90,12 @@ void Controller_hardware::print_motors_info(){
 void Controller_hardware::write(){
 
     std::cout << "Name :" << controller_name_ << std::endl;
-    std::cout << "joint states size: " << jointsState.name.size() << std::endl;
     std::cout << "State :" << jointsState.position[0] << std::endl;
 
-    for (int i = 0; i< joint_position_command_.size(); i++) {
+    std::cout << "joint states size Loop: " << jointsState.name.size() << std::endl;
+
+    for (int i = 0; i< jointsState.name.size(); i++) {
+        std::cout << "Name :" << jointsState.name[i] << std::endl;
         std::cout << "Command :" << joint_position_command_[i] << std::endl;
     }
 
@@ -142,24 +146,22 @@ bool Controller_hardware::init(
 
 
 void Controller_hardware::handleAMotorResponse(const sensor_msgs::JointState::ConstPtr& motor_response){
-    ROS_INFO("Rcv a motor Response");
   // READ
-    //    std::cout << "joint states size: " << jointsState.name.size() << " motor response size: " << motor_response->name.size() << std::endl;
-
-//    for (int j = 0; j < jointsState.name.size(); j++){
+//     std::cout << "joint states size: " << jointsState.name.size() << " motor response size: " << motor_response->name.size() << std::endl;
+//
+//    for (int j = 0; j < this->jointsState.name.size(); j++){
 //            for (int i = 0; i < motor_response->name.size(); i++){
-//           ROS_INFO("A %s B %s", motor_response->name[i].c_str(), jointsState.name[j].c_str());
+//           ROS_INFO("A %s B %s", motor_response->name[i].c_str(), this->jointsState.name[j].c_str());
 //                std::cout << "j: " << j << " i: " << i << std::endl;
-//            if (motor_response->name[i].compare(jointsState.name[j]) == 0){
+//            if (motor_response->name[i].compare(this->jointsState.name[j]) == 0){
 //                ROS_INFO("Found %s", motor_response->name[i].c_str());
-//              jointsState.name[j] = motor_response->name[i] ;
-//              jointsState.position[j] = motor_response->position[i];
-//              jointsState.velocity[j] = motor_response->velocity[i];
-//              jointsState.effort[j] = motor_response->effort[i];
+//                this->jointsState.name[j] = motor_response->name[i] ;
+//                this->jointsState.position[j] = motor_response->position[i];
+//                this->jointsState.velocity[j] = motor_response->velocity[i];
+//                this->jointsState.effort[j] = motor_response->effort[i];
 //            }
 //       }
 //    }
-  //jointsState = &request;
 }
 
 
