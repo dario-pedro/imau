@@ -18,16 +18,20 @@ Arm_interface_sim::Arm_interface_sim():n("~"){
   handleMotorPermition = false;
 
   //create timer
-  ros::Duration update_freq = ros::Duration(1.0/10);
-  non_realtime_loop_ = n.createTimer(update_freq, &Arm_interface_sim::update, this);
+  //  ros::Duration update_freq = ros::Duration(1.0/10);
+  //  non_realtime_loop_ = n.createTimer(update_freq, &Arm_interface_sim::update, this);
 
   last_time = ros::Time::now(); // marks the start
 
   //DINAMIC PARAMETERS LOADING
   if (!n.hasParam("imau_elevator_controller/joints") || !n.hasParam("imau_elevator_controller/motorIDs")){
-     ROS_ERROR("Joints DOES NOT EXIST!");
+     ROS_ERROR("Joint(s) are not available on the parameter server!");
      return;
   }
+    if ( !n.hasParam("imau_elevator_controller/motorIDs")){
+        ROS_ERROR("Motor id(s) are not available on the parameter server!");
+        return;
+    }
 
   if (n.getParam("imau_elevator_controller/oints",jointsState.name) && n.getParam("imau_elevator_controller/motorIDs",motorIDs)){
     ROS_INFO("Read all joints names and IDs with sucess!");
@@ -78,7 +82,7 @@ void Arm_interface_sim::print_motors_info(){
     std::cout << ' ' << *it ;
     std::cout << " with ID = " << *it2;
   	std::cout << '\n'; }
-  std::cout << " Found " << motorCounter << " motors\n";
+    std::cout << " Found " << motorCounter << " motors\n";
 }
 
 void Arm_interface_sim::write(){
