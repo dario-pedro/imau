@@ -20,6 +20,6 @@ catkin_package(
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
-add_executable(imau_control_node src/arm_interface_node.cpp src/Controller_hardware.cpp src/Arm_interface.cpp src/Arm_interface_sim.cpp)
+add_executable(imau_control_node src/arm_interface_node.cpp src/Controller_hardware.cpp src/Arm_interface.cpp )
 add_dependencies(imau_control_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  target_link_libraries(imau_control_node ${catkin_LIBRARIES})
