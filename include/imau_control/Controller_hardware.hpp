@@ -61,7 +61,7 @@ namespace ARM
             boost::shared_ptr<controller_manager::ControllerManager> controller_manager;
 
             sensor_msgs::JointState                       jointsState;
-            sensor_msgs::JointState                       jointsStateT;
+            sensor_msgs::JointState                       jointsState_output;
             sensor_msgs::JointState                       jointsStateActuator;
             std::vector<double>                           joint_position_command_;
 

@@ -57,7 +57,7 @@ void Arm_interface::constructor_global_function(){
     total_motorCounter= 0;
 
     //SUBSCRIBERS
-    arm_interface_sub = n.subscribe("/actuator/motor_nanotech/joint_states", 1000,&Arm_interface::handleAMotorResponse, this);
+    arm_interface_sub = n.subscribe("/actuator/nanotec/manipulation/joint_states", 1000,&Arm_interface::handleAMotorResponse, this);
 
 
     //CONTROL VARIABLES
@@ -109,7 +109,7 @@ void Arm_interface::read(){
 
 void Arm_interface::run(){
 //
-  ros::Rate go(10);
+  ros::Rate go(500);
 
   ros::AsyncSpinner spinner(5);
   spinner.start();

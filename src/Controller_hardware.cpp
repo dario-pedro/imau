@@ -13,7 +13,7 @@ Controller_hardware::Controller_hardware(std::string controller_name):n("~"){
     //arm_interface_sub = n.subscribe("/actuator/motor_nanotech/"+controller_name+"/joint_states", 1000,&Controller_hardware::handleAMotorResponse, this);
 
     //PUBLISHERS
-  joints_pub = nh.advertise<sensor_msgs::JointState>(/*/imau*/"/actuator/motor_nanotech/"+controller_name+"/joint_command", 1000);
+  joints_pub = nh.advertise<sensor_msgs::JointState>(/*/imau*/"/actuator/nanotec/manipulation/"+controller_name+"/request", 1000);
 
     last_time = ros::Time::now(); // marks the start
     standard_controller(controller_name);
@@ -46,10 +46,10 @@ void Controller_hardware::standard_controller(std::string controller_name){
       jointsState.effort.resize(motorCounter);
       joint_position_command_.resize(motorCounter);
 
-      jointsStateT.name = jointsState.name;
-      jointsStateT.position.resize(motorCounter);
-      jointsStateT.velocity.resize(motorCounter);
-      jointsStateT.effort.resize(motorCounter);
+      jointsState_output.name = jointsState.name;
+      jointsState_output.position.resize(motorCounter);
+      jointsState_output.velocity.resize(motorCounter);
+      jointsState_output.effort.resize(motorCounter);
 
       joint_id_to_joint_states_id_.resize(motorCounter);
 
@@ -88,10 +88,10 @@ void Controller_hardware::print_motors_info(){
  * @brief Publishes commands from the controller to a topic for the motors.
  */
 void Controller_hardware::write(){
-    std::cout << "Controller: " << controller_name_ << std::endl;
-    jointsStateT.position = joint_position_command_;
-    jointsStateT.header.stamp = ros::Time::now();
-    joints_pub.publish(jointsStateT);
+    std::cout << "WRITE pos[0]: " << controller_name_ << "go to" << joint_position_command_[0]<<std::endl;
+    jointsState_output.position = joint_position_command_;
+    jointsState_output.header.stamp = ros::Time::now();
+    joints_pub.publish(jointsState_output);
 }
 
 /**
@@ -107,23 +107,26 @@ void Controller_hardware::read(sensor_msgs::JointState &jointState_complete){
 //        // enter if condition if exists
 //        if(it !=  jointState_complete.name.end()){
 //            jointsState.position[j] = jointState_complete.position[i];
-////            std::cout << "Setting " << jointsState.name[i]  << " at pos "<< i << " from complete to pos "
-////                      << j << " of controller joints: max joint:  " << jointsState.position.size() << std::endl;
+//            std::cout << "Setting " << jointsState.name[i]  << " at pos "<< i << " from complete to pos "
+//                      << j << " of controller joints: max joint:  " << jointsState.position.size() << std::endl;
 //            j++;
 //        }
 //        else
 //            std::cout << " Not member of joints" << std::endl;
 
     // Copy state message to our datastructures
+    std::cout << "READ ! pos[0]: " << controller_name_ << "go to" << jointState_complete.position[joint_id_to_joint_states_id_[0]] << std::endl;
+
     for (std::size_t i = 0; i < motorCounter; ++i)
     {
         //ROS_INFO_STREAM_NAMED("arm_hardware_interface","Joint " << i << "("<< joint_names_[i] << ") -> " << joint_id_to_joint_states_id_[i] << " position= " << state_msg->position[joint_id_to_joint_states_id_[i]]);
-        jointsState.position[i] = jointState_complete.position[joint_id_to_joint_states_id_[i]];
+        jointsState.position[i] =joint_position_command_[i]; /* jointState_complete.position[joint_id_to_joint_states_id_[i]];*/
+        //jointsState.velocity[i] = jointState_complete.velocity[joint_id_to_joint_states_id_[i]];
         /* Nanotech motor sends the max speed of the motor only, for that reason
          * the value must always be 0 to not interfere with the controller */
         //jointsState.velocity[i] = jointState_complete.velocity[joint_id_to_joint_states_id_[i]];
         //jointsState.effort[i] = jointState_complete.effort[joint_id_to_joint_states_id_[i]];
-                    std::cout << "Setting " << jointsState.name[i]  << " at pos "<< i << " with value  " << jointsState.position[i] << std::endl;
+                    std::cout << "Speed " << jointsState.name[i]  << " at pos "<< i << " with value  " << jointsState.velocity[i] << std::endl;
     }
     //}
 }
