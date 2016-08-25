@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(trajectory_ros_control)
 
 find_package(catkin REQUIRED COMPONENTS
-  moveit_ros_planning_interface 
+  moveit_ros_planning 
   roscpp
   std_msgs
   sensor_msgs
@@ -16,7 +16,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 
 catkin_package(
  INCLUDE_DIRS include
- CATKIN_DEPENDS roscpp std_msgs sensor_msgs controller_manager hardware_interface moveit_ros_planning_interface 
+ CATKIN_DEPENDS roscpp std_msgs sensor_msgs controller_manager hardware_interface moveit_ros_planning 
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
